@@ -57,7 +57,7 @@ export default defineComponent({
 	font-size: 1rem;
 	line-height: 1.4;
 	user-select: none;
-	transition: background .15s, box-shadow .15s, opacity .15s;
+	transition: background-color .15s, box-shadow .15s, opacity .15s, filter .15s;
 
 	&.disabled {
 		background: #f1f5f9;
@@ -76,7 +76,8 @@ export default defineComponent({
 			box-shadow: 0 .375rem .75rem rgb(15 23 42 / 12%);
 
 			&:hover {
-				background: #153de9;
+				opacity: 1;
+				filter: brightness(.95);
 			}
 		}
 
