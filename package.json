@@ -20,5 +20,15 @@
     "pinia": "^4.0.3",
     "vue": "^3.5.43",
     "vue-router": "^5.3.1"
+  },
+  "devDependencies": {
+    "sass-embedded": "^1.105.1"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.27.7": true,
+    "unrs-resolver@1.12.2": true,
+    "@parcel/watcher@2.6.0": true
   }
 }
