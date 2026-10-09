@@ -11,7 +11,9 @@ export default defineNuxtConfig({
 	icon: {
 		provider: 'iconify',
 		clientBundle: {
-			scan: true,
+			scan: {
+				globInclude: ['app/**/*.{vue,ts}'],
+			},
 		},
 	},
 })

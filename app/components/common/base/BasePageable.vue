@@ -1,0 +1,195 @@
+<template>
+	<div class="base-pageable">
+		<div class="bp-content">
+			<slot name="default"/>
+		</div>
+
+		<footer v-if="total" class="bp-footer">
+			<div class="bp-meta">
+				<span>
+					Показано
+					<strong>{{ shownFrom }}</strong>–<strong>{{ shownTo }}</strong>
+					из <strong>{{ total }}</strong>
+					(страниц: {{ pagesCount }})
+				</span>
+			</div>
+
+			<div v-if="pagesCount > 1" class="bp-pager">
+				<BaseButton
+					:disabled="isFirstPage"
+					prepend-icon="mdi:menu-left"
+					variant="secondary"
+					aria-label="Предыдущая страница"
+					@click="goTo(currentPage - 1)"
+				/>
+
+				<BaseButton
+					v-for="(p, idx) of items"
+					:key="`p-${idx}-${p}`"
+					:variant="p === currentPage ? 'primary' : 'secondary'"
+					:disabled="p === currentPage || p === '...'"
+					@click="goTo(p)"
+				>
+					{{ p }}
+				</BaseButton>
+
+				<BaseButton
+					:disabled="isLastPage"
+					prepend-icon="mdi:menu-right"
+					variant="secondary"
+					aria-label="Следующая страница"
+					@click="goTo(currentPage + 1)"
+				/>
+			</div>
+		</footer>
+	</div>
+</template>
+
+<script lang="ts">
+import { defineComponent, computed, watch, ref } from 'vue';
+import BaseButton from './BaseButton.vue';
+
+export default defineComponent({
+	name: 'BasePageable',
+	components: { BaseButton },
+
+	props: {
+		page: { type: Number, default: 1 },         // v-model:page
+		limit: { type: Number, default: 10 },
+		total: { type: Number, required: true },
+		siblingCount: { type: Number, default: 1 }, // количество соседних страниц
+		boundaryCount: { type: Number, default: 1 }, // количество первых и последних страниц
+		showFirstLast: { type: Boolean, default: true }, // показывать первую и последнюю страницу
+	},
+
+	emits: ['update:page', 'change'],
+
+	setup(props, { emit }) {
+		const pagesCount = computed(() => Math.max(1, Math.ceil(props.total / props.limit)));
+		const currentPage = ref(Math.min(Math.max(Number(props.page), 1), pagesCount.value));
+		const isFirstPage = computed(() => currentPage.value <= 1);
+		const isLastPage = computed(() => currentPage.value >= pagesCount.value);
+		const shownFrom = computed(() => (props.total === 0 ? 0 : (currentPage.value - 1) * props.limit + 1));
+		const shownTo = computed(() => Math.min(currentPage.value * props.limit, props.total));
+
+		const items = computed<(number | string)[]>(() => {
+			const total = pagesCount.value;
+			const curPage = currentPage.value;
+
+			const bc = Math.max(0, props.boundaryCount); // количество первых и последних страниц
+			const sc = Math.max(0, props.siblingCount); // количество соседних страниц
+
+			if (total <= 1) return [1];
+
+			const res = [];
+			// добавляем соседние страницы
+			if(sc > 0) {
+				const scAmount = sc * 2;
+				const scStart = Math.max(1, curPage - sc);
+				const scEnd = Math.min(total, (curPage - sc) + scAmount);
+
+				for (let i = scStart; i <= scEnd; i++) {
+					if (i > 0 && i <= total) {
+						res.push(i);
+					}
+				}
+			}
+			else {
+				res.push(curPage);
+			}
+
+			if(bc > 0) {
+				let beforePages = [];
+				for(let i=1; beforePages.length < bc; i++) {
+					beforePages.push(i);
+				}
+				let afterPages = [];
+				for(let i=total-bc; afterPages.length < bc; i++) {
+					afterPages.push(i+1);
+				}
+
+				// Добавляем первые страницы, если они меньше уже добавленных
+				if(beforePages[beforePages.length-1] < res[0]) {
+					if(beforePages[beforePages.length-1]+1 < res[0]) { // если есть пропуск, то добавляем точки
+						beforePages.push('...');
+					}
+				}
+				else {
+					beforePages = [];
+				}
+
+				if(afterPages[0] > res[res.length-1]) {
+					if(afterPages[0]-1 > res[res.length-1]) { // если есть пропуск, то добавляем точки
+						afterPages.unshift('...');
+					}
+				}
+				else {
+					afterPages = [];
+				}
+
+				res.unshift(...beforePages);
+				res.push(...afterPages);
+			}
+
+			return res;
+		});
+
+		function goTo(p: number | string) {
+			if(typeof p !== 'number') return;
+
+			const next = Math.min(Math.max(1, p), pagesCount.value);
+			if (next !== currentPage.value) {
+				currentPage.value = next;
+				emit('update:page', next);
+				emit('change', next);
+			}
+		}
+
+		// Триггер коррекции подсвечиваемой тек. страницы (если родитель поменял страницу снаружи)
+		watch(() => props.page, (page) => {
+			currentPage.value = Math.min(Math.max(Number(page), 1), pagesCount.value);
+		});
+		// Триггер коррекции подсвечиваемой тек. страницы (если родитель поменял кол-во страниц снаружи)
+		watch(pagesCount, (n) => {
+			if (currentPage.value > n) goTo(n);
+			if (currentPage.value < 1) goTo(1);
+		});
+
+		return {
+			currentPage,
+			pagesCount,
+			shownFrom,
+			shownTo,
+			isFirstPage,
+			isLastPage,
+			items,
+			goTo,
+		};
+	},
+});
+</script>
+
+<style lang="scss">
+.base-pageable {
+	display: flex;
+	flex-direction: column;
+
+	.bp-footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: .75rem;
+		margin-top: .75rem;
+
+		.bp-meta {
+			color: #808080;
+			font-size: .85em;
+		}
+
+		.bp-pager {
+			display: flex;
+			gap: .25rem;
+		}
+	}
+}
+</style>

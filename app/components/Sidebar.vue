@@ -242,7 +242,8 @@ const { links } = useNavigation();
 
 					&.active {
 						border-left-color: #ff8000;
-						background: #1744e8;
+						// background: #1744e8;
+						background: rgba(255, 255, 255, 0.12);
 					}
 
 					&:focus-visible {

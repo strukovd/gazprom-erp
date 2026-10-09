@@ -17,3 +17,35 @@ button,
 input {
 	font: inherit;
 }
+
+.status {
+	display: inline-flex;
+    align-items: center;
+    gap: .3em;
+	padding: .3em .65em;
+	border-radius: 999px;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 1.4;
+	white-space: nowrap;
+
+	background-color: var(--bg);
+	color: var(--cl);
+
+	&.red    { --bg: #fee2e2; --cl: #dc2626; }
+	&.green  { --bg: #dcfce7; --cl: #166534; }
+	&.blue   { --bg: #e0f2fe; --cl: #2563ea; }
+	&.grey   { --bg: #f3f4f6; --cl: #374151; }
+	&.yellow { --bg: #fffbeb; --cl: #a16207; }
+	&.orange { --bg: #fff1e6; --cl: #b45309; }
+	&.pink   { --bg: #fce7f3; --cl: #be185d; }
+	&.purple { --bg: #f3e8ff; --cl: #7e22ce; }
+	&.indigo { --bg: #eef2ff; --cl: #4338ca; }
+	&.cyan   { --bg: #e0f2fe; --cl: #2563ea; }
+	&.teal   { --bg: #ccfbf1; --cl: #0f766e; }
+	&.lime   { --bg: #f7fee7; --cl: #84cc16; }
+}
+.outline {
+	@extend .status;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
